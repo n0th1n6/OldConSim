@@ -1,3 +1,5 @@
+> **OldConSim:** For our 3.2-inch ESP32-2432S032 CYD build, see [the board and build guide](docs/CYD32.md) and the [LCDWiki hardware reference](https://www.lcdwiki.com/3.2inch_ESP32-32E_Display). The original Anemoia documentation follows.
+
 <h1 align="center">
   <br>
   <img src="https://raw.githubusercontent.com/Shim06/Anemoia/main/assets/Anemoia.png" alt="Anemoia" width="150">

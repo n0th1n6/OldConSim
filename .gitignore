@@ -1,0 +1,4 @@
+.arduino/
+build/
+.DS_Store
+._*

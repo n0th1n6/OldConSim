@@ -261,7 +261,11 @@ static uint8_t UartControllerRead()
     static uint8_t buttons_state0 = 0x00;
     static uint8_t buttons_state1 = 0x00;
     bool success0 = UartProcessPacket(Serial, buttons_state0);
+#ifdef CONTROLLER_USB_SERIAL_ONLY
+    bool success1 = false;
+#else
     bool success1 = UartProcessPacket(Serial1, buttons_state1);
+#endif
 
     if (success0 || success1) { no_data_count = 0; }
     else if (no_data_count < no_data_limit)
@@ -355,10 +359,12 @@ void initController(ControllerType controller_type)
         // sends the button presses over serial. A different serial port is used instead of
         // Serial (Serial0) to prevent the adapter from interfering with programming.
         // Arduino ignores parity errors so there is nothing to be gained by setting the parity bit
+#ifndef CONTROLLER_USB_SERIAL_ONLY
         Serial1.begin(115200, SERIAL_8N1, CONTROLLER_UART_RX, CONTROLLER_UART_TX);
         delay(200); // allow controller adapter to finish booting
 
         Serial1.write(runtime_config.controller_type);
+#endif
         _controllerRead = UartControllerRead;
         break;
     case CT_NC:

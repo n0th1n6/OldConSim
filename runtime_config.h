@@ -45,6 +45,10 @@ inline RuntimeConfig loadConfig()
     // the alternative is to erase the entire flash before starting development
     // return cfg;
 
+#ifdef USE_COMPILED_RUNTIME_CONFIG
+    return cfg;
+#endif
+
     if (!LittleFS.begin())
     {
         LOG("LittleFS mount failed, attempting format...");

@@ -71,6 +71,10 @@ void setup()
 #ifndef COMPOSITE_VIDEO
     if (runtime_config.backlight) initBacklight();
     setupI2SDAC();
+#ifdef AUDIO_AMP_ENABLE_PIN
+    pinMode(AUDIO_AMP_ENABLE_PIN, OUTPUT);
+    digitalWrite(AUDIO_AMP_ENABLE_PIN, AUDIO_AMP_ENABLE_LEVEL);
+#endif
 
     // Initialize TFT screen
     screen.begin();
@@ -126,7 +130,7 @@ IRAM_ATTR void emulate()
 #else
     ui.loadEmulatorSettings(&nes);
     nes.connectScreen(&screen);
-    screen.setAddrWindow(32, 0, 256, 240);
+    screen.setAddrWindow((screen.width() - 256) / 2, (screen.height() - 240) / 2, 256, 240);
 #endif
     nes.insertCartridge(cart);
     LOG("Cartridge inserted");
@@ -198,7 +202,7 @@ IRAM_ATTR void emulate()
                 vTaskResume(apu_task_handle);
                 next_frame = esp_timer_get_time() + FRAME_TIME;
                 nes.setController(0);
-                screen.setAddrWindow(32, 0, 256, 240);
+                screen.setAddrWindow((screen.width() - 256) / 2, (screen.height() - 240) / 2, 256, 240);
             }
 #else
             if (!cv_paused)
@@ -271,10 +275,10 @@ bool initSD()
         int w3 = screen.textWidth(txt3, 2);
         int w4 = screen.textWidth(txt4, 2);
 
-        int x1 = (320 - w1) / 2;
-        int x2 = (320 - w2) / 2;
-        int x3 = (320 - w3) / 2;
-        int x4 = (320 - w4) / 2;
+        int x1 = (screen.width() - w1) / 2;
+        int x2 = (screen.width() - w2) / 2;
+        int x3 = (screen.width() - w3) / 2;
+        int x4 = (screen.width() - w4) / 2;
 
         screen.setTextColor(TFT_WHITE);
         screen.drawString(txt1, x1, 56, 2);

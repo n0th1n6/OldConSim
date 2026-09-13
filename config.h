@@ -15,7 +15,9 @@
 // #define CHEAP_YELLOW_DISPLAY_CONF // Uncomment this line if using the CYD
 // #define MODULE_BASED_PCB_CONF // Uncomment this line if using the module PCB
 // #define DISCRETE_PCB_CONF // Uncomment this line if using the discrete PCB
-#if defined(CHEAP_YELLOW_DISPLAY_CONF)
+#if defined(OLDCONSIM_CYD32)
+    #include "config_cyd32.h"
+#elif defined(CHEAP_YELLOW_DISPLAY_CONF)
     #include "config_cyd.h"
 #elif defined(MODULE_BASED_PCB_CONF)
     #include "config_module.h"
