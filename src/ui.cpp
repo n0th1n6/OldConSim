@@ -1,4 +1,20 @@
 #include "ui.h"
+#include "esp_ota_ops.h"
+#include "esp_partition.h"
+
+namespace
+{
+void exitToClock()
+{
+    const esp_partition_t* clock = esp_partition_find_first(
+        ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_OTA_0, "clock");
+    if (clock != nullptr && esp_ota_set_boot_partition(clock) == ESP_OK)
+    {
+        i2s_driver_uninstall(I2S_NUM_0);
+        ESP.restart();
+    }
+}
+}
 
 UI::UI(TFT_eSPI* screen)
 {
@@ -105,6 +121,12 @@ Cartridge* UI::selectGame()
         if (isDownPressed(CONTROLLER::A) && (selected >= 0 && selected < size))
         {
             game_chosen = true;
+        }
+
+        // Start + Select exits the NES application from the ROM browser.
+        if (isDownPressed(CONTROLLER::Start) && isDownPressed(CONTROLLER::Select))
+        {
+            exitToClock();
         }
 
         if (runtime_config.demo_mode)
@@ -254,7 +276,7 @@ void UI::pauseMenu(Nes* nes)
 
     constexpr int section_count[] = { 3, 2, 1 };
     constexpr const char* items[] = { "Resume",           "Settings",         "Reset",
-                                      "Quick Save State", "Quick Load State", "Save and Quit" };
+                                      "Quick Save State", "Quick Load State", "Exit to Clock" };
     enum ItemSelect : uint8_t
     {
         Resume,
@@ -377,9 +399,7 @@ void UI::pauseMenu(Nes* nes)
                     return;
 
                 case SaveAndQuit:
-                    // turn off audio before restart to prevent speaker popping
-                    i2s_driver_uninstall(I2S_NUM_0);
-                    ESP.restart();
+                    exitToClock();
                     return;
                 default: break;
                 }

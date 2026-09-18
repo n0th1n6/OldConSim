@@ -2,12 +2,15 @@
 #include <SD.h>
 #include <SPI.h>
 #include <TFT_eSPI.h>
+#include <Preferences.h>
 #include <string>
 #include <vector>
 
 #include "config.h"
 #include "driver/i2s.h"
 #include "esp_bt.h"
+#include "esp_ota_ops.h"
+#include "esp_partition.h"
 #include "esp_task_wdt.h"
 #include "runtime_config.h"
 #include "src/composite_video.h"
@@ -34,8 +37,36 @@ unsigned int demo_mode_roms_menu_timeout = 10000; // 10 [seconds]
 // how long the game demo (aka attract mode) runs for
 const uint64_t demo_mode_runtime = 120 * 1000000ULL; // 120 [seconds]
 
+// NES is launched as a one-shot companion app. The clock places this token
+// immediately before switching partitions; consuming it here makes any later
+// reset or power cycle return to the clock.
+static void requireClockLaunchToken()
+{
+    Preferences preferences;
+    bool launchedByClock = false;
+    if (preferences.begin("dualboot", false))
+    {
+        launchedByClock = preferences.getUChar("nes_once", 0) == 1;
+        if (launchedByClock)
+        {
+            preferences.remove("nes_once");
+        }
+        preferences.end();
+    }
+
+    if (launchedByClock) return;
+
+    const esp_partition_t* clock = esp_partition_find_first(
+        ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_OTA_0, "clock");
+    if (clock != nullptr && esp_ota_set_boot_partition(clock) == ESP_OK)
+    {
+        esp_restart();
+    }
+}
+
 void setup()
 {
+    requireClockLaunchToken();
     esp_reset_reason_t reset_reason = esp_reset_reason();
     setCpuFrequencyMhz(240);
 #ifdef DEBUG
